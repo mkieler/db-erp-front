@@ -9,8 +9,11 @@ export default defineNuxtConfig({
   sanctum: {
     baseUrl: 'http://localhost:8000', // Laravel API
     redirect: {
+        keepRequestedRoute: false,
         onAuthOnly: '/login',
-        onGuestOnly: '/profile',
+        onGuestOnly: '/',
+        onLogin: '/',
+        onLogout: '/login',
     },
     globalMiddleware: {
         enabled: true,

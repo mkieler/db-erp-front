@@ -60,10 +60,10 @@ const isOpen = ref(false)
             v-model:open="isOpen"
         >
             <UButton color="neutral" variant="link">
-                <UAvatar :alt="user.name" size="lg" />
+                <UAvatar :alt="user?.name" size="lg" />
                 <div class="flex flex-col ml-2 text-left">
                     <span class="text-dimmed text-xs">Administrator</span>
-                    <span class="text-md font-bold">{{ user.name }}</span>
+                    <span class="text-md font-bold">{{ user?.name }}</span>
                 </div>
                 <UIcon
                   :name="isOpen ? 'i-lucide-chevron-down' : 'i-lucide-chevron-up'"
