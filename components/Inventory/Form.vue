@@ -1,6 +1,20 @@
 <script setup>
     import { UCheckbox } from '#components';
-import * as z from 'zod';
+    import * as z from 'zod';
+    const { inventoryService } = useServices();
+    const buisy = ref(false);
+    const { imageService } = useServices();
+
+    const props = defineProps({
+        updating: {
+            type: Object,
+            default: null
+        },
+        editing: {
+            type: Boolean,
+            default: true
+        }
+    });
 
     const schema = z.object({
         productName: z.string()
@@ -13,33 +27,134 @@ import * as z from 'zod';
         alertThreshold: z.number()
             .int('Advarselsgrænse skal være et helt tal')
             .min(1, 'Advarselsgrænse skal være mindst 1')
-            .optional()
+            .optional(),
+        restockUrl: z.string()
+            .regex(
+            /^(?!https?:\/\/)[\w.-]+\.[a-zA-Z]{2,}(\/\S*)?$/,
+            'Indtast et gyldigt URL uden http:// eller https://'
+            )
+            .optional(),
     });
+
+    const imageId = ref(props.updating?.image_id || null);
 
     const state = ref({
-        productName: '',
-        quantity: 1,
-        alertThreshold: 5
+        productName: props.updating?.name || '',
+        quantity: props.updating?.qty || 1,
+        alertThreshold: props.updating?.alert_threshold || 5,
+        shouldAlert: props.updating?.should_alert ?? true,
+        note: props.updating?.note || '',
+        restockUrl: props.updating?.restock_url || ''
     });
 
-    const emit = defineEmits(['stockItem:created', 'update:open']);
+    const emit = defineEmits(['update:open', 'update:editing', 'product:changed']);
 
     async function onSubmit() {
+        buisy.value = true;
+        const successful = await inventoryService.updateOrCreate({
+            id: props.updating?.id,
+            imageId: imageId.value || null,
+            name: state.value.productName,
+            quantity: state.value.quantity,
+            alertThreshold: state.value.alertThreshold,
+            shouldAlert: state.value.shouldAlert,
+            note: state.value.note,
+            restockUrl: state.value.restockUrl
+        });
+        if (successful) {
+            emit('update:editing', false);
+            emit('update:open', false);
+            emit('product:changed', true);
+        } 
+        buisy.value = false;
+    }
 
+    function handleStockChange(changedStock) {
+        if (changedStock > 0) {
+            state.value.quantity += changedStock;
+        }
+        emit('product:changed', true);
     }
 </script>
 <template>
-    <UForm :schema="schema" :state="state" @submit.prevent="onSubmit">
+
+    <UForm :schema="schema" :state="state" @submit.prevent="onSubmit" class="grid gap-4">
+
+        <ImageUploader :editable="editing" :url="updating?.image_url" class="my-2" @imageUpdated="imageId = $event"/>
+
         <UFormField label="Produktnavn" name="productName">
-            <UInput v-model="state.productName" placeholder="Indtast produktnavn" />
+            <UInput 
+                v-model="state.productName" 
+                placeholder="Indtast produktnavn" 
+                class="w-full"
+                :variant="editing ? 'outline' : 'none'"
+                :readonly="!editing"
+                />
         </UFormField>
         <UFormField label="Antal på lager" name="quantity">
-            <UInput v-model.number="state.quantity" type="number" placeholder="Indtast antal" />
+            <UInputNumber v-if="editing" class="w-[10rem]" v-model.number="state.quantity" />
+            <div v-else class="px-2.5 flex items-center gap-2">
+                {{ state.quantity }}
+                <InventoryUpdateStockPopover
+                    :productId="props.updating?.id" 
+                    @productChanged="handleStockChange"
+                    label="Tilføj produkter"
+                />
+            </div>
         </UFormField>
-        <UCheckbox v-model="state.shouldAlert" label="Skal der sendes en notifikation ved lavt lager antal" />
+        <UCheckbox 
+            v-model="state.shouldAlert" 
+            label="Skal der sendes en notifikation ved lavt lager antal" 
+            v-if="editing"
+            />
+        <div v-if="!editing && state.shouldAlert">
+            <p class="text-sm">
+                Skal der sendes en notifikation ved lavt lager antal?
+            </p>
+            <UBadge class="mt-2" color="success" variant="subtle">
+                Notifikation aktiveret
+            </UBadge>
+        </div>
+        
         <UFormField v-if="state.shouldAlert" label="Advarselsgrænse" name="alertThreshold">
-            <UInput v-model.number="state.alertThreshold" type="number" placeholder="Indtast advarselsgrænse" />
+            <UInputNumber v-if="editing" class="w-[10rem]" v-model.number="state.alertThreshold" />
+            <div v-else class="px-2.5">
+                {{ state.alertThreshold }}
+            </div>
         </UFormField>
-
+        <UFormField name="restockUrl" label="Link til genbestilling" v-if="editing || state.restockUrl !== ''">
+            <UInput 
+                v-model="state.restockUrl"
+                placeholder="Indtast link til genbestilling (valgfri)"
+                class="w-full"
+                :variant="editing ? 'outline' : 'none'"
+                :readonly="!editing"
+                :ui="{
+                    base: 'pl-14.5',
+                    leading: 'pointer-events-none'
+                }"
+                >
+                    <template #leading>
+                        <p class="text-sm text-muted">
+                        https://
+                        </p>
+                    </template>
+            </UInput>
+        </UFormField>
+        <UFormField label="Note" name="note" v-if="editing || state.note !== ''">
+            <UTextarea 
+                v-model="state.note" 
+                placeholder="Indtast note (valgfri)" 
+                class="w-full" 
+                :variant="editing ? 'outline' : 'none'"
+                :readonly="!editing"
+                />
+        </UFormField>
+        <div class="flex justify-end gap-2 mt-10" v-if="editing">
+            <UButton :disabled="buisy" type="button" variant="ghost" @click="$emit('update:editing', false)">Annuller</UButton>
+            <UButton :loading="buisy" type="submit" icon="i-lucide-save" @click="onSubmit">
+                {{ props.updating ? 'Opdater produkt' : 'Opret produkt' }}
+            </UButton>
+        </div>
     </UForm>
 </template>

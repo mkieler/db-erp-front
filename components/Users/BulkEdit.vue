@@ -6,7 +6,7 @@ const props = defineProps({
     }
 });
 
-const { userService, accessService } = useBackend();
+const { userService, accessService } = useServices();
 const accessItems = await accessService.get();
 const busy = ref(false);
 const data = ref({

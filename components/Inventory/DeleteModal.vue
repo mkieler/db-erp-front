@@ -1,11 +1,11 @@
 <script setup>
     const open = ref(false);
-    const { userService } = useServices();
+    const { inventoryService } = useServices();
     const buisy = ref(false);
 
     const props = defineProps({
-        user: {
-            type: Object,
+        productId: {
+            type: Number,
             default: null
         },
         disabled: {
@@ -13,14 +13,14 @@
             default: false
         }
     });
-    const emit = defineEmits(['user:deleted']);
+    const emit = defineEmits(['deleted']);
 
-    const deleteUser = async () => {
+    const deleteProduct = async () => {
         buisy.value = true;
-        const success = await userService.remove(props.user.id);
+        const success = await inventoryService.remove(props.productId);
         open.value = false;
         if(success){
-            emit('user:deleted');
+            emit('deleted');
         }
         buisy.value = false;
     };
@@ -30,14 +30,20 @@
 <template>
     <UModal v-model:open="open" title="Second modal" :ui="{ footer: 'justify-end' }" @update:open="open = $event">
         <UTooltip
-            text="Slet bruger"
+            text="Slet produkt"
             :delay-duration="0"
-        >
-            <UButton :disabled="disabled" type="button" variant="ghost" color="error" icon="i-lucide-trash-2" class="cursor-pointer" @click="open = true"/>
+            >
+            <UButton
+                variant="ghost"
+                color="error"
+                size="sm"
+                icon="i-lucide-trash-2"
+            />
         </UTooltip>
+        
 
         <template #title>
-            <p class="font-normal">Er du sikker på, at du vil slette denne bruger?</p>
+            <p class="font-normal">Er du sikker på, at du vil slette dette produkt?</p>
             <p class="text-sm text-gray-500 font-normal">Denne handling kan ikke fortrydes.</p>
         </template>
 
@@ -46,7 +52,7 @@
                 <UButton :disabled="buisy" type="button" variant="ghost" color="neutral" class="cursor-pointer" @click="open = false">
                     Annuller
                 </UButton>
-                <UButton :loading="buisy" type="button" color="error" icon="i-lucide-trash-2" size="lg" class="cursor-pointer" @click="deleteUser">
+                <UButton :loading="buisy" type="button" color="error" icon="i-lucide-trash-2" size="lg" class="cursor-pointer" @click="deleteProduct">
                     Slet bruger
                 </UButton>
             </div>

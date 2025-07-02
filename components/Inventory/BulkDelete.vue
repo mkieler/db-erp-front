@@ -1,25 +1,25 @@
 <script setup>
 const props = defineProps({
-    selectedUsers: {
+    selectedProducts: {
         type: Array,
         default: () => []
     }
 });
 
 const busy = ref(false);
-const { userService } = useServices();
-const userCount = computed(() => props.selectedUsers.length);
+const { inventoryService } = useServices();
+const productCount = computed(() => props.selectedProducts.length);
 
 const isOpen = ref(false);
 
-const emit = defineEmits(['users:deleted']);
+const emit = defineEmits(['products:deleted']);
 
-async function deleteUsers() {
+async function deleteProducts() {
     busy.value = true;
-    await userService.bulkDelete(props.selectedUsers);
+    await inventoryService.bulkDelete(props.selectedProducts);
     isOpen.value = false;
     busy.value = false;
-    emit('users:deleted', props.selectedUsers);
+    emit('products:deleted', props.selectedProducts);
 }
 
 function close() {
@@ -30,7 +30,7 @@ function close() {
 
 <template>
     <UModal
-        title="Slet valgte brugere"
+        title="Slet valgte produkter"
         v-model:open="isOpen"
         @update:open="isOpen = $event"
     >
@@ -46,7 +46,7 @@ function close() {
         </UButton>
         
         <template #body>
-            <p class="mb-4">Er du sikker på, at du vil slette {{ userCount }} brugere? Denne handling kan ikke fortrydes.</p>
+            <p class="mb-4">Er du sikker på, at du vil slette {{ productCount }} produkter? Denne handling kan ikke fortrydes.</p>
         </template>
 
         <template #footer>
@@ -67,7 +67,7 @@ function close() {
                     icon="i-lucide-trash-2" 
                     size="lg" 
                     class="cursor-pointer"
-                    @click="deleteUsers"
+                    @click="deleteProducts"
                     :loading="busy"
                 >
                     Slet brugere

@@ -1,7 +1,7 @@
 <script setup>
-import { UCheckbox, UInput, UPagination } from '#components'
+import { UCheckbox, UInput, UPagination, UAvatar } from '#components'
 
-const { userService } = useBackend()
+const { userService } = useServices()
 const loading = ref(true)
 const users = ref([])
 const userTotal = ref(0)
@@ -70,10 +70,11 @@ onMounted(loadUsers)
       </div>
     </template>
 
-    <UsersEditModal 
+    <UsersDetailsModal 
       v-model:open="userModalOpen" 
       :user="selectedUser"
       @user:changed="loadUsers"
+      @update:open="userModalOpen = $event"
     />
 
     <UCard class="relative">
@@ -122,8 +123,22 @@ onMounted(loadUsers)
                 }
               })
           },
-          { accessorKey: 'name', header: 'Navn' },
-          { accessorKey: 'email', header: 'Email' },
+          { 
+            accessorKey: 'name', 
+            header: 'Navn', 
+            cell: ({ row }) => {
+              return h('div', { class: 'flex items-center gap-3' }, [
+                h(UAvatar, {
+                  alt: row.original.name,
+                  size: 'lg'
+                }),
+                h('div', undefined, [
+                  h('p', { class: 'font-medium text-highlighted' }, row.original.name),
+                  h('p', { class: '' }, row.original.email)
+                ])
+              ])
+            } 
+          },
           {
             accessorKey: 'accesses',
             header: 'Adgang',

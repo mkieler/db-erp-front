@@ -2,6 +2,7 @@ export const accessService = () => {
     const client = useSanctumClient();
     const resource = 'user/accesses';
     const toast = useToast()
+    const { httpErrorText } = useHelpers();
 
 
     return {

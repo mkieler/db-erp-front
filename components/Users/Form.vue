@@ -2,7 +2,7 @@
     import { UButton, UsersDeleteModal } from '#components';
     import * as z from 'zod';
 
-    const { accessService, userService } = useBackend();
+    const { accessService, userService } = useServices();
     const accessItems = await accessService.get();
     const buisy = ref(false);
 
@@ -54,7 +54,7 @@
         password: ''
     });
 
-    async function onSubmit() {
+    async function saveChanges() {
         buisy.value = true;
         const successful = await userService.updateOrCreate({
             id: props.user?.id,
@@ -65,7 +65,6 @@
         });
         if (successful) {
             emit('update:editing', false);
-            emit('update:open', false);
             emit('user:changed', true);
         } 
         buisy.value = false;
@@ -81,15 +80,29 @@
         };
     }
 
-    function handleChangeEvent() {
-        emit('update:open', false);
-        emit('user:changed', true);
+    function reset(){
+        state.value = {
+            name: props.user?.name || '',
+            email: props.user?.email || '',
+            password: '',
+            accesses: props.user?.accesses?.map(a => a.id) || []
+        };
     }
+
+    watch(() => props.editing, (newVal) => {
+        if (!newVal) {
+            reset();
+        }
+    });
+
+    defineExpose({
+        saveChanges,
+        reset,
+    });
 </script>
 
 <template>
-
-    <UForm :schema="schema" :state="state" @submit.prevent="onSubmit">
+    <UForm :schema="schema" :state="state" @submit.prevent="saveChanges">
         <div class="grid grid-cols-2 gap-4">
             <UFormField label="Navn" name="name">
                 <UInput
@@ -149,9 +162,7 @@
         </div>
 
 
-        <div v-if="editing" class="mt-10 flex items-center" :class="{ 'justify-between': updating, 'justify-end': !updating }">
-            <UsersDeleteModal v-if="updating" :user="user" @user:deleted="handleChangeEvent" :disabled="buisy"/>
-            
+        <div v-if="editing && !updating" class="mt-10 flex items-center justify-end">            
             <div class="flex gap-2">
                 <UButton 
                     type="button" 
@@ -163,7 +174,7 @@
                     Annuller
                 </UButton>
                 <UButton type="submit" icon="i-lucide-save" size="lg" class="cursor-pointer" :loading="buisy">
-                    Gem
+                    opret
                 </UButton>
             </div>
         </div>

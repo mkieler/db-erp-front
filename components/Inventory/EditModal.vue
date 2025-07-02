@@ -1,39 +1,57 @@
 <script setup>
+const emit = defineEmits(['update:open', 'product:changed']);
+
 const props = defineProps({
-    userModalOpen: {
-        type: Boolean,
-        default: false
-    },
-    user: {
+    updating: {
         type: Object,
         default: null
+    },
+    isOpen: {
+        type: Boolean,
+        default: false
     }
 });
-const emit = defineEmits(['update:open', 'user:changed']);
 
-function handeOpen(open){
+const editing = ref(false);
+// Use a computed setter to emit changes instead of mutating the prop
+const isOpen = computed({
+    get: () => props.isOpen,
+    set: (value) => emit('update:open', value)
+});
+
+function handleOpen(open){
     emit('update:open', open);
     if (!open) {
         editing.value = false;
     }
 }
-const editing = ref(false);
 </script>
 
+
 <template>
-    <UModal
-        :open="props.userModalOpen"
-        @update:open="handeOpen($event)"
-    >
+    <UModal 
+        title="Opdater vare"
+        size="lg"
+        @update:open="isOpen = $event"
+        v-model:open="isOpen"
+        >
+
         <template #header>
             <div class="w-full flex items-center justify-between">
                 <h2 class="text-lg font-semibold">
-                    {{ editing ? 'Rediger bruger' : 'Brugeroplysninger' }}
+                    {{ editing ? 'Rediger vare' : 'Varedetaljer' }}
                 </h2>
                 <div>
+                    <InventoryDeleteModal
+                        v-if="!editing"
+                        :product="props.updating"
+                        @update:open="isOpen = $event"
+                        @update:editing="editing = $event"
+                        @product:changed="$emit('product:changed', $event)"
+                    />
                     <UTooltip
                         v-if="!editing"
-                        text="Rediger bruger"
+                        text="Rediger vare"
                         :delay-duration="0"
                     >          
                         <UButton 
@@ -52,7 +70,7 @@ const editing = ref(false);
                         type="button" 
                         icon="i-lucide-x" 
                         size="lg" 
-                        @click="handeOpen(false)" 
+                        @click="isOpen = false" 
                         class="cursor-pointer text-gray-700"
                         variant="ghost"
                     >
@@ -63,13 +81,12 @@ const editing = ref(false);
         </template>
 
         <template #body>
-            <UsersForm 
-                :user="user" 
-                @update:open="handeOpen($event)" 
-                @update:editing="editing = $event" 
-                @user:changed="$emit('user:changed', $event)"
+            <InventoryForm
+                :updating="props.updating"
                 :editing="editing"
-                :updating="true"
+                @update:editing="editing = $event" 
+                @update:open="handleOpen($event)"
+                @product:changed="$emit('product:changed', $event)"
             />
         </template>
     </UModal>

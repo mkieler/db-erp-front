@@ -1,6 +1,6 @@
 <script setup>
 const user = useSanctumUser();
-const { userService } = useBackend();
+const { userService } = useServices();
 const colorMode = useColorMode()
 
 const modeIndex = computed({

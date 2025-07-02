@@ -1,6 +1,6 @@
 <script setup>
     import * as z from 'zod';
-    const { userService } = useBackend();
+    const { userService } = useServices();
     
     definePageMeta({
         layout: false,
