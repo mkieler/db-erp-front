@@ -1,31 +1,24 @@
 <script setup>
-const props = defineProps({
-    userModalOpen: {
-        type: Boolean,
-        default: false
-    },
-    user: {
-        type: Object,
-        default: null
-    }
-});
-const emit = defineEmits(['update:open', 'user:changed']);
+const emit = defineEmits(['update:open', 'product:changed']);
+
 const { userCan } = useHelpers();
 
-function handeOpen(open){
-    emit('update:open', open);
-    if (!open) {
-        editing.value = false;
+const props = defineProps({
+    product: {
+        type: Object,
+        default: null
+    },
+    isOpen: {
+        type: Boolean,
+        default: false
     }
-}
-const editing = ref(false);
-
+});
 
 const activeTab = ref('info');
 const tabItems = [
     {
-        label: 'Oplysninger',
-        icon: 'i-lucide-user',
+        label: 'Produktoplysninger',
+        icon: 'i-lucide-box',
         value: 'info'
     },
     {
@@ -47,15 +40,19 @@ const dialogContentClass = computed(() => {
 });
 </script>
 
+
 <template>
-    <UModal
-        :open="props.userModalOpen"
-        @update:open="handeOpen($event)"
+    <UModal 
+        title="Opdater vare"
+        size="lg"
+        @update:open="emit('update:open', $event)"
+        v-model:open="props.isOpen"
         :ui="{
             header: '!p-0 min-h-0',
             content: dialogContentClass,
         }"
-    >
+        >
+
         <template #header>
             <div class="w-full flex items-center justify-between">
                 <UTabs 
@@ -75,29 +72,28 @@ const dialogContentClass = computed(() => {
                         type="button" 
                         icon="i-lucide-x" 
                         size="lg" 
-                        @click="handeOpen(false)" 
+                        @click="emit('update:open', false)" 
                         class="cursor-pointer text-gray-700 mr-4"
                         variant="ghost"
                     >
                     </UButton>
                 </div>
             </div>
-
         </template>
 
         <template #body>
-            <div v-if="activeTab === 'info'" class="relative p-3" :class="{'mr-20': userCan('editInventory')}">
-                <UsersDetailsTab 
-                    :user="user" 
-                    @update:open="handeOpen($event)"
-                    @user:changed="emit('user:changed', $event)"
+            <div v-if="activeTab === 'info'" class="relative p-3" :class="{'mr-20': userCan('editInventory')}"> 
+                <InventoryDetailsTab 
+                    :product="product" 
+                    @update:open="emit('update:open', $event)"
+                    @product:changed="emit('product:changed', $event)"
                 />
             </div>
 
             <div v-else-if="activeTab === 'activity'" class="p-3">
-                <UsersActivityTab :user="user" />
+                <InventoryActivityTab :product="product" />
             </div>
-            
+
         </template>
     </UModal>
 </template>

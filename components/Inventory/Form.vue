@@ -4,6 +4,7 @@
     const { inventoryService } = useServices();
     const buisy = ref(false);
     const { imageService } = useServices();
+    const { userCan } = useHelpers();
 
     const props = defineProps({
         updating: {
@@ -33,6 +34,7 @@
             /^(?!https?:\/\/)[\w.-]+\.[a-zA-Z]{2,}(\/\S*)?$/,
             'Indtast et gyldigt URL uden http:// eller https://'
             )
+            .nullish()
             .optional(),
     });
 
@@ -44,12 +46,17 @@
         alertThreshold: props.updating?.alert_threshold || 5,
         shouldAlert: props.updating?.should_alert ?? true,
         note: props.updating?.note || '',
-        restockUrl: props.updating?.restock_url || ''
+        restockUrl: props.updating?.restock_url || null
+    });
+
+    // Watch restockUrl and set to null if empty string
+    watch(() => state.value.restockUrl, (val) => {
+        if (val === '') state.value.restockUrl = null;
     });
 
     const emit = defineEmits(['update:open', 'update:editing', 'product:changed']);
 
-    async function onSubmit() {
+    async function saveChanges() {
         buisy.value = true;
         const successful = await inventoryService.updateOrCreate({
             id: props.updating?.id,
@@ -75,12 +82,15 @@
         }
         emit('product:changed', true);
     }
+
+    defineExpose({
+        saveChanges
+    });
 </script>
 <template>
+    <UForm :schema="schema" :state="state" @submit.prevent="saveChanges" class="grid gap-4">
 
-    <UForm :schema="schema" :state="state" @submit.prevent="onSubmit" class="grid gap-4">
-
-        <ImageUploader :editable="editing" :url="updating?.image_url" class="my-2" @imageUpdated="imageId = $event"/>
+        <SharedImageUploader :editable="editing" :url="updating?.image_url" class="my-2" @imageUpdated="imageId = $event"/>
 
         <UFormField label="Produktnavn" name="productName">
             <UInput 
@@ -99,6 +109,7 @@
                     :productId="props.updating?.id" 
                     @productChanged="handleStockChange"
                     label="Tilføj produkter"
+                    v-if="userCan('editInventory')"
                 />
             </div>
         </UFormField>
@@ -152,7 +163,7 @@
         </UFormField>
         <div class="flex justify-end gap-2 mt-10" v-if="editing">
             <UButton :disabled="buisy" type="button" variant="ghost" @click="$emit('update:editing', false)">Annuller</UButton>
-            <UButton :loading="buisy" type="submit" icon="i-lucide-save" @click="onSubmit">
+            <UButton :loading="buisy" type="submit" icon="i-lucide-save">
                 {{ props.updating ? 'Opdater produkt' : 'Opret produkt' }}
             </UButton>
         </div>

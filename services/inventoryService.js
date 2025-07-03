@@ -124,6 +124,19 @@ export const inventoryService = () => {
                 });
                 return false;
             }
+        },
+
+        getActivities: async (productId, filters = {}) => {
+            try {
+                return await client(`inventory/products/${productId}/activities`, { params: filters });
+            } catch (error) {
+                toast.add({ 
+                    title: 'Fejl ved indlæsning af aktiviteter', 
+                    description: httpErrorText(error), 
+                    color: 'error', 
+                    icon: 'i-mdi-alert' 
+                });
+            }
         }
     };
 }

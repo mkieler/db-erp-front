@@ -1,4 +1,5 @@
 <script setup>
+    const { userCan } = useHelpers();
     const props = defineProps({
         product: {
             type: Object,
@@ -27,12 +28,14 @@
         <InventoryUpdateStockPopover
             :productId="props.product.id"
             @productChanged="$emit('productChanged')"
+            v-if="userCan('editInventory')" 
         />
         
 
         <InventoryDeleteModal
             :productId="props.product.id"
             @deleted="$emit('productChanged')"
+            v-if="userCan('editInventory')" 
         />
 
 

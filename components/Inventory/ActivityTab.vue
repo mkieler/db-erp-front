@@ -1,11 +1,18 @@
 <script setup>
-    const { userService, activityService } = useServices();
+    const { inventoryService, activityService } = useServices();
 
-    const userActivities = ref([]);
+    const productActivities = ref([]);
     const loading = ref(false);
 
     const columns = [
-        { accessorKey: 'subject_label', header: 'Emne' },
+        {
+            accessorKey: 'user.firstName',
+            header: 'Udført af',
+            cell: ({ row }) => {
+            const user = row.original.user || {};
+            return [user.firstName, user.lastName].filter(Boolean).join(' ');
+            }
+        },
         {
             accessorKey: 'activity_type',
             header: 'Type / Handling',
@@ -44,18 +51,17 @@
         },
     ];
 
-    const subjects = ref([]);
     const types = ref([]);
 
     const filters = ref({
         selectedDate: null,
         search: '',
         type: null,
-        subject: null
+        perPage: 1000
     });
 
     const props = defineProps({
-        user: {
+        product: {
             type: Object,
             required: true
         }
@@ -72,35 +78,32 @@
             return `${yyyy}-${mm}-${dd}`;
         }
 
-        const userActivityResponse = await userService.getUserActivities(props.user.id, {
+        console.log(Array.isArray(filters.value.type) ? filters.value.type.join(',') : null);
+
+        const productActivityResponse = await inventoryService.getActivities(props.product.id, {
             type: Array.isArray(filters.value.type) ? filters.value.type.join(',') : null,
-            subject: Array.isArray(filters.value.subject) ? filters.value.subject.join(',') : null,
             search: filters.value.search || null,
             from: filters.value.selectedDate?.start ? formatDate(filters.value.selectedDate.start) : null,
             to: filters.value.selectedDate?.end ? formatDate(filters.value.selectedDate.end) : null,
             perPage: 1000
         });
 
-        userActivities.value = userActivityResponse.data;
+        console.log(productActivityResponse);
+
+        productActivities.value = productActivityResponse.data;
         loading.value = false;
     }
 
     async function initialize() {
-        const availableFilters = await activityService.getActivityFilters();
+        const availableFilters = await activityService.getActivityFilters('product');
 
         types.value = availableFilters.availableTypes.map(type => ({
             label: type,
             value: type
         }));
 
-        subjects.value = availableFilters.availableSubjects.map(subject => ({
-            label: subject.label,
-            value: subject.type
-        }));
-
         // By default select all
         filters.value.type = types.value.map(t => t.value);
-        filters.value.subject = subjects.value.map(s => s.value);
         await loadActivities();
     }
 
@@ -159,25 +162,7 @@
                 </template>
             </USelect>
 
-            <USelect
-                v-model="filters.subject"
-                multiple
-                :items="subjects"
-                @change="loadActivities"
-                class="w-[8rem]"
-            >
-                <template #default>
-                    <span>
-                    {{
-                        !filters.subject || filters.subject.length === 0
-                        ? 'Ingen emner'
-                        : filters.subject.length === subjects.length
-                            ? 'Alle emner'
-                            : `${filters.subject.length} valgte`
-                    }}
-                    </span>
-                </template>
-            </USelect>
+            
             <UPopover>
                 <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" class="w-[9rem]">
                     {{ selectedDateLabel }}
@@ -192,7 +177,7 @@
     </div>
     <UTable 
         :columns="columns"
-        :data="userActivities"
+        :data="productActivities"
         :loading="loading"
         sticky
         class="h-[30rem] w-full"

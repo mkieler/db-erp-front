@@ -4,6 +4,8 @@ import TableActions from '@/components/Inventory/TableActions.vue'
 
 const { inventoryService } = useServices();
 
+const { userCan } = useHelpers();
+
 const productModalOpen = ref(false)
 const loading = ref(true)
 const inventory = ref([])
@@ -66,21 +68,21 @@ onMounted(loadProducts)
                     v-model="inventoryRequestParams.search"
                     @keyup="updateFilters"
                 />
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" v-if="userCan('editInventory')">
                     <InventoryCreateModal @product:changed="loadProducts"/>
                 </div>
             </div>
         </template>
 
-        <InventoryEditModal
+        <InventoryDetailsModal
             v-model:open="productModalOpen"
-            :updating="selectedProduct"
+            :product="selectedProduct"
             @product:changed="loadProducts"
             @update:open="productModalOpen = $event"
         />
         <UCard class="relative">
             <div
-                v-if="selectedProducts.length > 0"
+                v-if="selectedProducts.length > 0 && userCan('editInventory')"
                 class="rounded-xl overflow-hidden z-10 shadow-xl absolute bottom-15 left-1/2 transform -translate-x-1/2 flex justify-between items-center bg-gray-800"
             >
                 <UButton 
@@ -103,27 +105,27 @@ onMounted(loadProducts)
             class="h-[75vh] w-full"
             :rowSelection="rowSelection"
             :columns="[
-                {
+                ...(userCan('editInventory') ? [{
                     id: 'select',
                     header: ({ table }) =>
-                    h(UCheckbox, {
-                        modelValue: table.getIsSomePageRowsSelected() ? 'indeterminate' : table.getIsAllPageRowsSelected(),
-                        'onUpdate:modelValue': (value) => {
-                        table.toggleAllPageRowsSelected(value)
-                        const ids = table.getRowModel().rows.map(r => r.original.id)
-                        ids.forEach(id => handleSelectedProducts(id, value))
-                        },
-                        'aria-label': 'Vælg alle'
-                    }),
+                        h(UCheckbox, {
+                            modelValue: table.getIsSomePageRowsSelected() ? 'indeterminate' : table.getIsAllPageRowsSelected(),
+                            'onUpdate:modelValue': (value) => {
+                                table.toggleAllPageRowsSelected(value)
+                                const ids = table.getRowModel().rows.map(r => r.original.id)
+                                ids.forEach(id => handleSelectedProducts(id, value))
+                            },
+                            'aria-label': 'Vælg alle'
+                        }),
                     cell: ({ row }) =>
-                    h(UCheckbox, {
-                        modelValue: row.getIsSelected(),
-                        'onUpdate:modelValue': (val) => {
-                        row.toggleSelected(val)
-                        handleSelectedProducts(row.original.id, val)
-                        }
-                    })
-                },
+                        h(UCheckbox, {
+                            modelValue: row.getIsSelected(),
+                            'onUpdate:modelValue': (val) => {
+                                row.toggleSelected(val)
+                                handleSelectedProducts(row.original.id, val)
+                            }
+                        })
+                }] : []),
                 { accessorKey: 'image_url', header: 'Billede', cell: ({ row }) => {
                     const imageUrl = row.original.image_url || '/img/no-image.jpg'
                     return h('img', { src: imageUrl, class: 'w-10 h-10 object-cover rounded' })

@@ -2,6 +2,7 @@
 import { UCheckbox, UInput, UPagination, UAvatar } from '#components'
 
 const { userService } = useServices()
+const { userCan } = useHelpers()
 const loading = ref(true)
 const users = ref([])
 const userTotal = ref(0)
@@ -64,7 +65,7 @@ onMounted(loadUsers)
             v-model="userRequestParams.search"
             @keyup="updateFilters"
         />
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2" v-if="userCan('editUsers')" >
           <UsersCreateModal v-model:open="createModalOpen" @user:changed="loadUsers" />
         </div>
       </div>
@@ -79,7 +80,7 @@ onMounted(loadUsers)
 
     <UCard class="relative">
       <div
-        v-if="selectedUsers.length > 0"
+        v-if="selectedUsers.length > 0 && userCan('editUsers')"
         class="rounded-xl overflow-hidden z-10 shadow-xl absolute bottom-15 left-1/2 transform -translate-x-1/2 flex justify-between items-center bg-gray-800"
       >
         <UButton 
@@ -102,27 +103,27 @@ onMounted(loadUsers)
         class="h-[75vh] w-full"
         :rowSelection="rowSelection"
         :columns="[
-          {
+            ...(userCan('editUsers') ? [{
             id: 'select',
             header: ({ table }) =>
               h(UCheckbox, {
-                modelValue: table.getIsSomePageRowsSelected() ? 'indeterminate' : table.getIsAllPageRowsSelected(),
-                'onUpdate:modelValue': (value) => {
-                  table.toggleAllPageRowsSelected(value)
-                  const ids = table.getRowModel().rows.map(r => r.original.id)
-                  ids.forEach(id => handleSelectedUsers(id, value))
-                },
-                'aria-label': 'Vælg alle'
+              modelValue: table.getIsSomePageRowsSelected() ? 'indeterminate' : table.getIsAllPageRowsSelected(),
+              'onUpdate:modelValue': (value) => {
+                table.toggleAllPageRowsSelected(value)
+                const ids = table.getRowModel().rows.map(r => r.original.id)
+                ids.forEach(id => handleSelectedUsers(id, value))
+              },
+              'aria-label': 'Vælg alle'
               }),
             cell: ({ row }) =>
               h(UCheckbox, {
-                modelValue: row.getIsSelected(),
-                'onUpdate:modelValue': (val) => {
-                  row.toggleSelected(val)
-                  handleSelectedUsers(row.original.id, val)
-                }
+              modelValue: row.getIsSelected(),
+              'onUpdate:modelValue': (val) => {
+                row.toggleSelected(val)
+                handleSelectedUsers(row.original.id, val)
+              }
               })
-          },
+            }] : []),
           { 
             accessorKey: 'name', 
             header: 'Navn', 

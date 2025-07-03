@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue';
 
+const { userCan } = useHelpers();
+
 defineProps({
     user: {
         type: Object,
@@ -26,9 +28,10 @@ function saveChanges() {
         :user="user" 
         @update:editing="editing = $event" 
         @update:open="$emit('update:open', $event)" 
-        @user:changed="$emit('user:changed', $event)"
         @saveChanges="saveChanges"
+        @user:changed="$emit('user:changed', $event)"
         :editing="editing"
+        v-if="userCan('editUsers')"
     />
     
     <UsersForm 

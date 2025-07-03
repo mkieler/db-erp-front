@@ -5,9 +5,14 @@ export const activityService = () => {
     const { httpErrorText } = useHelpers();
 
     return {
-        getActivityFilters: async () => {
+        getActivityFilters: async (context = null) => {
             try {
-                return await client(`${resource}/available-filters`);
+                console.log(context);
+                if (context) {
+                    return await client(`${resource}/available-filters`, { params: {context} });
+                } else {
+                    return await client(`${resource}/available-filters`);
+                }
             } catch (error) {
                 toast.add({ 
                     title: 'Fejl ved indlæsning af brugeraktivitet filtre', 

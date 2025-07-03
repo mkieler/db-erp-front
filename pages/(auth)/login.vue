@@ -29,7 +29,7 @@
     <div class="relative h-screen bg-[url(/img/login-background.webp)] bg-cover bg-center">
         <div class="opacity-70 absolute top-0 left-0 w-screen h-screen bg-default"></div>
         <div class="flex flex-col items-center justify-center h-screen relative z-10">
-            <Logo class="mb-10"/>
+            <SharedLogo class="mb-10"/>
             <UCard variant="subtle" class="shadow-xl max-w-sm w-full">
                 <UForm :schema="schema" :state="userCredentials" class="flex flex-col gap-4" @submit.prevent="onSubmit" >
                     <UFormField label="Email" name="email">

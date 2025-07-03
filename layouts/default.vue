@@ -6,13 +6,13 @@
             <aside class="p-4 w-64 shadow-xl h-full overflow-y-auto z-10">
                 <div class="flex flex-col justify-between h-full">
                     <div>
-                        <Logo class="mb-3"/>
+                        <SharedLogo class="mb-3"/>
                         <USeparator />
-                        <Navigation class="my-3" />
+                        <SharedNavigation class="my-3" />
                     </div>
                     <div>
                         <USeparator class="my-3"/>
-                        <UserMenu />
+                        <SharedUserMenu />
                     </div>
                 </div>
             </aside>
