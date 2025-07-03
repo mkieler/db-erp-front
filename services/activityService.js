@@ -21,6 +21,19 @@ export const activityService = () => {
                     icon: 'i-mdi-alert' 
                 });
             }
+        },
+
+        getActivities: async (filters = {}) => {
+            try {
+                return await client(resource, { params: filters });
+            } catch (error) {
+                toast.add({ 
+                    title: 'Fejl ved indlæsning af brugeraktivitet', 
+                    description: httpErrorText(error), 
+                    color: 'error', 
+                    icon: 'i-mdi-alert' 
+                });
+            }
         }
     }
 };

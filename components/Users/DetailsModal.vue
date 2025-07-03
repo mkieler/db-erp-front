@@ -86,7 +86,7 @@ const dialogContentClass = computed(() => {
         </template>
 
         <template #body>
-            <div v-if="activeTab === 'info'" class="relative p-3" :class="{'mr-20': userCan('editInventory')}">
+            <div v-if="activeTab === 'info'" class="relative p-3" :class="{'mr-20': userCan('editUsers')}">
                 <UsersDetailsTab 
                     :user="user" 
                     @update:open="handeOpen($event)"

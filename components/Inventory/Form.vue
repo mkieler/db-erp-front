@@ -161,10 +161,10 @@
                 :readonly="!editing"
                 />
         </UFormField>
-        <div class="flex justify-end gap-2 mt-10" v-if="editing">
+        <div  class="flex justify-end gap-2 mt-10" v-if="editing && !updating">
             <UButton :disabled="buisy" type="button" variant="ghost" @click="$emit('update:editing', false)">Annuller</UButton>
             <UButton :loading="buisy" type="submit" icon="i-lucide-save">
-                {{ props.updating ? 'Opdater produkt' : 'Opret produkt' }}
+                Opret produkt
             </UButton>
         </div>
     </UForm>

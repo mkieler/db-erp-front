@@ -1,16 +1,16 @@
-
 <template>
     <NuxtLayout pageTitle="Forside">
-        <template #pageActions>
-            <UButton
-                icon="i-heroicons-plus-solid"
-                color="primary"
-                variant="solid"
-                class="ml-auto"
-                @click="$router.push('/new')"
-            >
-                New Item
-            </UButton>
-        </template>
+        <div class="flex flex-col gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <FrontpageWarnings />
+
+                <FrontpageTotalProducts />
+
+                <FrontpageTotalUsers />
+            </div>
+
+            <FrontpageActivities />
+        </div>
+        
     </NuxtLayout>
 </template>
