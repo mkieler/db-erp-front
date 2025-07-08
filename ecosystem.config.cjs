@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'DbErp',
-      port: process.env.PORT,
+      port: 3030,
       exec_mode: 'cluster',
       instances: 'max',
       script: './.output/server/index.mjs'
