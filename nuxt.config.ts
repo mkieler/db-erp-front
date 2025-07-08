@@ -7,6 +7,7 @@ export default defineNuxtConfig({
   
 
   sanctum: {
+    baseUrl: 'https://backend.erp.mkieler.com', // Laravel API
     redirect: {
         keepRequestedRoute: false,
         onAuthOnly: '/login',
